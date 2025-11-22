@@ -1,0 +1,1 @@
+int authorize(struct MHD_Connection *conn);

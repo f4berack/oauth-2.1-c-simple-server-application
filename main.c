@@ -3,46 +3,20 @@
 #include <string.h>
 #include <microhttpd.h>
 
-#define PORT 8080
+#include "./config.h"
+#include "./oauth_logic.h"
 
 int handler(void *cls, struct MHD_Connection *conn,
             const char *url, const char *method,
             const char *ver, const char *upload_data,
             size_t *upload_data_size, void **con_cls)
 {
-    char *msg = malloc(strlen("test")+1);
-    strcpy(msg, "test");
 
-    if (strcmp(url, "/authorize") == 0) {
-
-        const char *client_id = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "client_id");
-        const char *redirect_uri = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "redirect_uri");
-        const char *response_type = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "response_type");
-        const char *state = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "state");
-
-        printf("client_id=%s, redirect_uri=%s, response_type=%s, state=%s\n",
-               client_id ? client_id : "(null)",
-               redirect_uri ? redirect_uri : "(null)",
-               response_type ? response_type : "(null)",
-               state ? state : "(null)");
-
-        free(msg);
-        msg = strdup("authorize");
-        if (!msg) {
-            fprintf(stderr, "Memory allocation failed\n");
-            return MHD_NO;
-        }
+    if (strcmp(url, "/authorize") == 0 && strcmp(method, "GET") == 0) {
+        return authorize(conn);
+    } else {
+        return MHD_NO;
     }
-
-    struct MHD_Response *resp = MHD_create_response_from_buffer(strlen(msg),
-                                                                (void*)msg,
-                                                                MHD_RESPMEM_MUST_FREE);
-    
-    int response = MHD_queue_response(conn, MHD_HTTP_OK, resp);
-    
-    MHD_destroy_response(resp);
-
-    return response;
 
 }
 
@@ -52,7 +26,7 @@ int main()
 
     daemon = MHD_start_daemon(
         MHD_USE_INTERNAL_POLLING_THREAD,
-        PORT,
+        SERVER_PORT,
         NULL, 
         NULL,                  
         &handler, 
@@ -65,7 +39,7 @@ int main()
         return EXIT_FAILURE;
     }
 
-    printf("Simple OAuth 2.1 compliant server application running on port %d\n", PORT);
+    printf("Simple OAuth 2.1 compliant server application running on port %d\n", SERVER_PORT);
     getchar();
 
     MHD_stop_daemon(daemon);
