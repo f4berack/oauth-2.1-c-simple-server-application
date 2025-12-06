@@ -6,7 +6,9 @@
 #include "./config.h"
 #include "./oauth_logic.h"
 
-int handler(void *cls, struct MHD_Connection *conn,
+#include <uriparser/Uri.h>
+
+enum MHD_Result handler(void *cls, struct MHD_Connection *conn,
             const char *url, const char *method,
             const char *ver, const char *upload_data,
             size_t *upload_data_size, void **con_cls)
